@@ -37,15 +37,8 @@ return [
     'channels' => [
         'stack' => [
             'driver' => 'stack',
-            'channels' => ['db_log', 'single'],
+            'channels' => ['single'],
             'ignore_exceptions' => false,
-        ],
-
-        'db_log' => [
-            'driver' => 'custom',
-            'handler' => App\Logging\DBLogHandler::class,
-            'via' => App\Logging\DBLogger::class,
-            'level' => 'debug',
         ],
 
         'single' => [
