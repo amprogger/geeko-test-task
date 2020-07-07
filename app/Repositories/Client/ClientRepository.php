@@ -7,6 +7,7 @@ namespace App\Repositories\Client;
 use App\Client;
 use App\ClientEmail;
 use App\ClientPhone;
+use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Collection;
 use Illuminate\Database\Eloquent\Model;
 
@@ -16,6 +17,16 @@ use Illuminate\Database\Eloquent\Model;
  */
 class ClientRepository implements ClientRepositoryInterface
 {
+
+    /**
+     * @var string[]
+     */
+    private $conditionClasses = [
+         'all' => AllConditions::class,
+         'name' => NameConditions::class,
+         'email' => EmailConditions::class,
+         'phone' => PhoneConditions::class
+     ];
 
     /**
      * @param array $data
@@ -69,44 +80,14 @@ class ClientRepository implements ClientRepositoryInterface
     }
 
     /**
-     * @param array $params
+     * @param string $type
+     * @param string $term
      * @return Collection
      */
-    public function search(array $params): Collection
+    public function search(string $type, string $term): Collection
     {
-        $type = $params['type'] ?? 'all';
-        $query = $params['query'];
-        $dbQuery = Client::query()
-            ->leftJoin('client_phones', 'client_phones.client_id', '=', 'clients.id')
-            ->leftJoin('client_emails', 'client_emails.client_id', '=', 'clients.id');
-        switch ($type) {
-            case "name":
-                $dbQuery->where("first_name", "like", "%$query%");
-                $dbQuery->Orwhere("last_name", "like", "%$query%");
-                break;
-            case "phone":
-                $dbQuery->where("client_phones.phone", "like", "%$query%");
-                break;
-            case "email":
-                $dbQuery->where("client_emails.email", "like", "%$query%");
-                break;
-            case "all":
-                $dbQuery->where("first_name", "like", "%$query%");
-                $dbQuery->oRwhere("last_name", "like", "%$query%");
-                $dbQuery->oRwhere("client_phones.phone", "like", "%$query%");
-                $dbQuery->oRwhere("client_emails.email", "like", "%$query%");
-                break;
-        }
-        $dbQuery->groupBy('clients.id');
-        $results = $dbQuery
-            ->selectRaw("
-            clients.id,
-            clients.first_name,
-            clients.last_name,
-            clients.created_at,
-            clients.updated_at")
-            ->with(['phones', 'emails'])
-            ->get();
-        return $results;
+        $dbQuery = Client::query();
+        return app($this->conditionClasses[$type])->getGetConditions($dbQuery, $term)
+            ->with('phones', 'emails')->get();
     }
 }

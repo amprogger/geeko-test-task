@@ -91,7 +91,7 @@ class ClientService implements ClientServiceInterface
      */
     public function search(FormRequest $request): JsonResponse
     {
-        $results = $this->repository->search($request->all());
+        $results = $this->repository->search($request->type, $request->get('query'));
         Log::notice('operation:search',
             ['type' => $request->get('type'), 'query' => $request->get('query')]);
         return (ClientResource::collection($results))->response()->setStatusCode(200);

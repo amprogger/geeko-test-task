@@ -34,8 +34,9 @@ interface ClientRepositoryInterface
     public function show(int $id): ?Model;
 
     /**
-     * @param array $params
+     * @param string $type
+     * @param string $query
      * @return Collection
      */
-    public function search(array $params): Collection;
+    public function search(string $type, string $query): Collection;
 }
